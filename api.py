@@ -16,7 +16,9 @@ from imdbinfo import (
     get_reviews,
     get_trivia,
     get_filmography,  # aggiunto import
+    get_parental_guide,
 )
+from imdbinfo.models import ParentalGuideList
 
 description = """
 This project provides a "quick and dirty" API service to retrieve movie information from IMDB.
@@ -118,6 +120,13 @@ def read_filmography(imdb_id: str):
         raise HTTPException(status_code=404, detail="Filmografia non trovata")
     return filmography
 
+@app.get("/parental-guide/{imdb_id}", summary="Retrieve parental guide for a movie or series")
+def read_parental_guide(imdb_id: str):
+    """Return the parental guide for the movie or series identified by ``imdb_id``."""
+    parental_guide = get_parental_guide(imdb_id)
+    if not parental_guide:
+        raise HTTPException(status_code=404, detail="Parental guide not found")
+    return parental_guide
 
 # root endpoint for health check
 @app.get("/", summary="Health check")

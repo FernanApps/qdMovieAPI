@@ -33,6 +33,9 @@ It uses the [imdbinfo](https://github.com/tveronesi/imdbinfo) package to fetch m
    - `/filmography/<imdb_id>`
      - example: http://127.0.0.1:5000/filmography/nm0000206
      - returns the complete filmography of a person grouped by role
+   - `/parental-guide/<imdb_id>`
+     - example: http://127.0.1:5000/parental-guide/tt0944947`
+     - returns the parental guide information for a movie or series
    - `/apidoc`
      - auto-generated Swagger/OpenAPI documentation for the service
    - `/`

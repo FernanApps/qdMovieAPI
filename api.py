@@ -4,6 +4,7 @@ This module exposes a small set of HTTP endpoints to search for movies and
 names on IMDB using the ``imdbinfo`` package.  The API documentation is served
 automatically by FastAPI at ``/apidoc``.
 """
+from typing import List, Union, Dict
 
 from fastapi import FastAPI, HTTPException, Query
 from imdbinfo import (
@@ -18,7 +19,8 @@ from imdbinfo import (
     get_filmography,  # aggiunto import
     get_parental_guide,
 )
-from imdbinfo.models import ParentalGuideList
+from imdbinfo.models import ParentalGuideList, MovieDetail, PersonDetail, SearchResult, SeasonEpisodesList, \
+    BulkedEpisode, AkasData
 
 description = """
 This project provides a "quick and dirty" API service to retrieve movie information from IMDB.
@@ -37,7 +39,7 @@ app = FastAPI(
 )
 
 
-@app.get("/movie/{imdb_id}", summary="Retrieve movie details by IMDB ID")
+@app.get("/movie/{imdb_id}", summary="Retrieve movie details by IMDB ID", response_model=MovieDetail)
 def read_movie(imdb_id: str):
     """Return the details for the movie identified by ``imdb_id``."""
     movie_data = get_movie(imdb_id)
@@ -46,7 +48,7 @@ def read_movie(imdb_id: str):
     return movie_data.model_dump()
 
 
-@app.get("/name/{imdb_id}", summary="Retrieve name details by IMDB ID")
+@app.get("/name/{imdb_id}", summary="Retrieve name details by IMDB ID", response_model=PersonDetail)
 def read_name(imdb_id: str):
     """Return the details for the name entry identified by ``imdb_id``."""
     name_data = get_name(imdb_id)
@@ -55,7 +57,7 @@ def read_name(imdb_id: str):
     return name_data.model_dump()
 
 
-@app.get("/search", summary="Search for movie titles")
+@app.get("/search", summary="Search for movie titles", response_model=SearchResult)
 def search(q: str = Query(..., description="The search term for the movie title")):
     """Search for movie titles that match ``q``."""
     results = search_title(q)
@@ -67,6 +69,7 @@ def search(q: str = Query(..., description="The search term for the movie title"
 @app.get(
     "/series/{imdb_id}/season/{season}",
     summary="Retrieve episodes for a season of a series",
+    response_model=SeasonEpisodesList
 )
 def read_season_episodes(imdb_id: str, season: int):
     """Return the details for the movie identified by ``imdb_id``."""
@@ -76,7 +79,7 @@ def read_season_episodes(imdb_id: str, season: int):
     return episodes.model_dump()
 
 
-@app.get("/series/{imdb_id}/episodes", summary="Retrieve episodes for a series")
+@app.get("/series/{imdb_id}/episodes", summary="Retrieve episodes for a series", response_model=List[BulkedEpisode])
 def read_series_episodes(imdb_id: str):
     """Return the details for all episodes of a series identified by ``imdb_id``."""
     episodes = get_all_episodes(imdb_id)
@@ -85,7 +88,7 @@ def read_series_episodes(imdb_id: str):
     return episodes
 
 
-@app.get("/akas/{imdb_id}", summary="Retrieve AKAs for a movie or series")
+@app.get("/akas/{imdb_id}", summary="Retrieve AKAs for a movie or series", response_model=Union[AkasData, list])
 def read_akas(imdb_id: str):
     """Return the AKAs for the movie or series identified by ``imdb_id``."""
     akas = get_akas(imdb_id)
@@ -94,7 +97,7 @@ def read_akas(imdb_id: str):
     return akas
 
 
-@app.get("/reviews/{imdb_id}", summary="Retrieve reviews for a movie or series")
+@app.get("/reviews/{imdb_id}", summary="Retrieve reviews for a movie or series", response_model=List[Dict])
 def read_reviews(imdb_id: str):
     """Return the reviews for the movie or series identified by ``imdb_id``."""
     reviews = get_reviews(imdb_id)
@@ -103,7 +106,7 @@ def read_reviews(imdb_id: str):
     return reviews
 
 
-@app.get("/trivia/{imdb_id}", summary="Retrieve trivia for a movie or series")
+@app.get("/trivia/{imdb_id}", summary="Retrieve trivia for a movie or series", response_model=List[Dict])
 def read_trivia(imdb_id: str):
     """Return the trivia for the movie or series identified by ``imdb_id``."""
     trivia = get_trivia(imdb_id)
@@ -112,7 +115,7 @@ def read_trivia(imdb_id: str):
     return trivia
 
 
-@app.get("/filmography/{imdb_id}", summary="Recupera la filmografia completa per una persona")
+@app.get("/filmography/{imdb_id}", summary="Recupera la filmografia completa per una persona", response_model=dict)
 def read_filmography(imdb_id: str):
     """Restituisce la filmografia completa della persona identificata da ``imdb_id`` raggruppata per ruolo/lavoro."""
     filmography = get_filmography(imdb_id)
@@ -120,7 +123,7 @@ def read_filmography(imdb_id: str):
         raise HTTPException(status_code=404, detail="Filmografia non trovata")
     return filmography
 
-@app.get("/parental-guide/{imdb_id}", summary="Retrieve parental guide for a movie or series")
+@app.get("/parental-guide/{imdb_id}", summary="Retrieve parental guide for a movie or series", response_model=ParentalGuideList)
 def read_parental_guide(imdb_id: str):
     """Return the parental guide for the movie or series identified by ``imdb_id``."""
     parental_guide = get_parental_guide(imdb_id)
